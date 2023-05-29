@@ -1,69 +1,53 @@
 //your JS code here. If required.
-// Get a random number between min and max (inclusive)
-function getRandomNumber(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
+ // Function to generate a random delay between 1 and 3 seconds
+    function generateDelay() {
+      return Math.floor(Math.random() * 3) + 1;
+    }
 
-// Create an array of Promises that resolve after a random time between 1 and 3 seconds
-const promises = Array.from({ length: 3 }, (_, index) => {
-  const randomTime = getRandomNumber(1000, 3000);
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(randomTime);
-    }, randomTime);
-  });
-});
+    // Function to create a Promise with a random delay
+    function createPromise(index) {
+      const delay = generateDelay();
+      return new Promise((resolve, reject) => {
+        setTimeout(() => {
+          resolve(delay);
+        }, delay * 1000);
+      });
+    }
 
-// Add a loading row to the table
-const loadingRow = document.createElement('tr');
-const loadingCell = document.createElement('td');
-loadingCell.setAttribute('colspan', '2');
-loadingCell.textContent = 'Loading...';
-loadingRow.appendChild(loadingCell);
+    // Create an array of Promises
+    const promises = [
+      createPromise(1),
+      createPromise(2),
+      createPromise(3)
+    ];
 
-const table = document.getElementById('your-table'); // Replace 'your-table' with the actual table ID
+    // Wait for all Promises to resolve using Promise.all()
+    Promise.all(promises)
+      .then(results => {
+        const loadingRow = document.getElementById('loading-row');
+        loadingRow.remove();
 
-// Add the loading row to the table
-table.appendChild(loadingRow);
+        // Update the table with the results
+        const table = document.querySelector('table');
+        results.forEach((time, index) => {
+          const row = table.insertRow();
+          const promiseCell = row.insertCell();
+          promiseCell.textContent = `Promise ${index + 1}`;
 
-// Wait for all promises to resolve using Promise.all
-Promise.all(promises)
-  .then((results) => {
-    // Remove the loading row
-    table.removeChild(loadingRow);
+          const timeCell = row.insertCell();
+          timeCell.textContent = time;
+        });
 
-    // Create rows for each promise result
-    results.forEach((result, index) => {
-      const row = document.createElement('tr');
+        // Calculate and add the total time
+        const totalRow = table.insertRow();
+        const totalCell = totalRow.insertCell();
+        const totalTime = results.reduce((sum, time) => sum + time, 0);
+        totalCell.textContent = 'Total';
 
-      const firstColumn = document.createElement('td');
-      firstColumn.textContent = `Promise ${index + 1}`;
-      row.appendChild(firstColumn);
-
-      const secondColumn = document.createElement('td');
-      secondColumn.textContent = `${result / 1000}`;
-      row.appendChild(secondColumn);
-
-      // Add the row to the table
-      table.appendChild(row);
-    });
-
-    // Calculate the total time taken to resolve all promises
-    const totalTime = results.reduce((total, result) => total + result, 0);
-
-    // Add the total row to the table
-    const totalRow = document.createElement('tr');
-    const totalFirstColumn = document.createElement('td');
-    totalFirstColumn.textContent = 'Total';
-    totalRow.appendChild(totalFirstColumn);
-
-    const totalSecondColumn = document.createElement('td');
-    totalSecondColumn.textContent = `${totalTime / 1000}`;
-    totalRow.appendChild(totalSecondColumn);
-
-    table.appendChild(totalRow);
-  })
-  .catch((error) => {
-    console.error('An error occurred:', error);
-  });
-
+        const timeTakenCell = totalRow.insertCell();
+        timeTakenCell.textContent = totalTime.toFixed(3);
+      })
+      .catch(error => {
+        console.error(error);
+      });
+  </script>
